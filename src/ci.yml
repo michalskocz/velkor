@@ -11,7 +11,7 @@ variables:
 
 build_app:
   stage: build
-  image: golang:1.22
+  image: golang:1.26
   type: docker
   script:
     - go version
