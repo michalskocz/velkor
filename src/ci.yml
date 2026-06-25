@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+  - run
+
+threads: 4
+
+variables:
+  - APP_NAME: "velkor"
+  - GREETING: "Hello from Velkor"
+
+build_app:
+  stage: build
+  image: golang:1.22
+  type: docker
+  script:
+    - go version
+    - echo "Building $APP_NAME"
+
+unit_tests:
+  stage: test
+  image: golang:1.26
+  type: docker
+  script:
+    - go test ./...
+
+integration_echo:
+  stage: run
+  image: alpine:latest
+  type: docker
+  script:
+    - echo "$GREETING"
+    - echo "Pipeline finished successfully"
