@@ -1,0 +1,27 @@
+stages:
+  - build
+  - test
+
+threads: 4
+
+unit_tests:
+  stage: test
+  image: golang:1.26
+  script:
+    - go test -v ./...
+
+benchmarks:
+  stage: test
+  image: golang:1.26
+  script:
+    - go test -bench="." -benchmem -run=^$ ./...
+
+build_app:
+  stage: build
+  image: golang:1.26
+  variables:
+    - FLAGS: "test"
+  artifacts: ["dist/velkor"]
+  script:
+    - go build -o dist/velkor  ./exe
+    - echo $FLAGS

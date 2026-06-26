@@ -71,6 +71,6 @@ func main() {
 	parseArgs()
 	getConfig()
 	if err := RunPipeline(); err != nil {
-		log.Fatalf("Błąd wykonania CI/CD: %v", err)
+		log.Fatalf("Error in CI/CD: %v", err)
 	}
 }

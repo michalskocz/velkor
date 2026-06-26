@@ -18,9 +18,9 @@ const PODMAN = 1
 const DEFAULT_CONTAINER_TYPE = DOCKER
 
 type DockerImage struct {
-	ContainerTye int // Docker or Podman. Int in case of more option in feature
-	Name         string
-	Repo         string
+	ContainerType int // Docker or Podman. Int in case of more option in feature
+	Name          string
+	Repo          string
 }
 
 type Task struct {
@@ -29,6 +29,7 @@ type Task struct {
 
 	Script    []string
 	Variables []Variable
+	Artifacts []string
 }
 
 // Checking the Queu Implementation
@@ -167,7 +168,7 @@ func (c *Config) String() string {
 			sb.WriteString(fmt.Sprintf("    %s◇ Task: %s%s\n", colorCyan, task.Name, colorReset))
 
 			cType := "Docker"
-			if task.Image.ContainerTye == PODMAN {
+			if task.Image.ContainerType == PODMAN {
 				cType = "Podman"
 			}
 

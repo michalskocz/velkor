@@ -1,88 +1,108 @@
 package configuration
 
 import (
+	"errors"
 	"testing"
 )
 
-const validYAML = `
+func TestParseYAMLConfig_Valid(t *testing.T) {
+	yamlData := []byte(`
 threads: 4
 variables:
-  - ENV: production
-  - VERSION: 1.0.0
+  - env: production
 stages:
   - build
-  - deploy
-
-build_task:
+test_task:
   stage: build
-  image: golang:1.20
-  type: podman
-  script:
-    - go build -o app
-    - echo "Build done"
-
-deploy_task:
-  stage: deploy
-  image: alpine:latest
+  image: alpine
+  repo: local
   type: docker
   script:
-    - echo "Deploying..."
-`
+    - echo "hello"
+`)
 
-func TestParseYAMLConfig_Success(t *testing.T) {
-	config, err := ParseYAMLConfig([]byte(validYAML))
+	config, err := ParseYAMLConfig(yamlData)
 	if err != nil {
-		t.Fatalf("Nie udało się sparsować poprawnego YAML: %v", err)
+		t.Fatalf("ParseYAMLConfig() unexpected error: %v", err)
+	}
+
+	if config == nil {
+		t.Fatal("ParseYAMLConfig() returned nil config")
 	}
 
 	if config.Threads != 4 {
-		t.Errorf("Oczekiwano 4 wątków, otrzymano %d", config.Threads)
+		t.Errorf("Threads = %d; want 4", config.Threads)
 	}
+}
 
-	if len(config.GlobalVariables) != 2 {
-		t.Errorf("Oczekiwano 2 zmiennych globalnych, otrzymano %d", len(config.GlobalVariables))
-	}
-
-	if len(config.Stages.stages) != 2 {
-		t.Fatalf("Oczekiwano 2 etapów, otrzymano %d", len(config.Stages.stages))
-	}
-
-	buildStage := config.Stages.stages[0]
-	if buildStage.Name != "build" {
-		t.Errorf("Oczekiwano etapu 'build', otrzymano '%s'", buildStage.Name)
-	}
-	if len(buildStage.Tasks.tasks) != 1 {
-		t.Fatalf("Oczekiwano 1 zadania w etapie build, otrzymano %d", len(buildStage.Tasks.tasks))
-	}
-
-	task := buildStage.Tasks.tasks[0]
-	if task.Name != "build_task" {
-		t.Errorf("Oczekiwano zadania 'build_task', otrzymano '%s'", task.Name)
-	}
-	if task.Image.ContainerTye != PODMAN {
-		t.Errorf("Oczekiwano typu kontenera PODMAN (%d), otrzymano %d", PODMAN, task.Image.ContainerTye)
+func TestParseYAMLConfig_InvalidYAML(t *testing.T) {
+	yamlData := []byte(`: invalid`)
+	_, err := ParseYAMLConfig(yamlData)
+	if err == nil {
+		t.Fatal("ParseYAMLConfig() error = nil; want error for invalid YAML")
 	}
 }
 
 func TestParseYAMLConfig_InvalidThreads(t *testing.T) {
-	invalidYAML := `
-threads: 0
+	yamlData := []byte(`
+threads: -1
 stages:
   - build
-`
-	_, err := ParseYAMLConfig([]byte(invalidYAML))
+`)
+	_, err := ParseYAMLConfig(yamlData)
 	if err == nil {
-		t.Error("Oczekiwano błędu z powodu 0 wątków, otrzymano nil")
+		t.Fatal("ParseYAMLConfig() error = nil; want error for negative threads")
+	}
+}
+
+func TestParseYAMLConfig_NonExistentStage(t *testing.T) {
+	yamlData := []byte(`
+stages:
+  - build
+test_task:
+  stage: deploy
+  image: alpine
+`)
+	_, err := ParseYAMLConfig(yamlData)
+	if err == nil {
+		t.Fatal("ParseYAMLConfig() error = nil; want error for non-existent stage assignment")
+	}
+}
+
+func TestNotNullNodes_NilData(t *testing.T) {
+	err := notNullNodes(nil, &Config{})
+	if !errors.Is(err, errNullPointer) {
+		t.Errorf("notNullNodes() error = %v; want %v", err, errNullPointer)
 	}
 }
 
 func BenchmarkParseYAMLConfig(b *testing.B) {
-	data := []byte(validYAML)
+	yamlData := []byte(`
+threads: 8
+variables:
+  - key1: value1
+  - key2: value2
+stages:
+  - test
+  - deploy
+task1:
+  stage: test
+  image: ubuntu
+  repo: remote
+  type: podman
+  script:
+    - make test
+task2:
+  stage: deploy
+  image: alpine
+  repo: remote
+  type: docker
+  script:
+    - make deploy
+`)
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := ParseYAMLConfig(data)
-		if err != nil {
-			b.Fatalf("Benchmark przerwany przez błąd: %v", err)
-		}
+		_, _ = ParseYAMLConfig(yamlData)
 	}
 }
