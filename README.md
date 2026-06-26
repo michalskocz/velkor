@@ -2,10 +2,21 @@
 
 # Velkor
 
+[![License](https://img.shields.io/badge/license-BSD%202--Clause-blue.svg)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go)](https://go.dev/)
+[![Release](https://img.shields.io/github/v/release/michalskocz/velkor)](https://github.com/twoj-login/twoje-repo/releases)
+
+
+---
+
 </div>
+
+<div align="center">
 
 Velkor is a lightweight **local CI/CD runner inspired by GitHub Actions**, written in Go.  
 It allows you to execute CI/CD pipelines locally inside containers (Docker or Podman), making it easy to test workflows without pushing changes to remote CI systems.
+
+</div>
 
 ---
 
