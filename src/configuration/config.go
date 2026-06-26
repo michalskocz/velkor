@@ -72,12 +72,12 @@ func (s *StageQueue) Next() bool {
 }
 
 func (t *TaskQueue) Get() (interface{}, error) {
-	defer t.mut.Unlock()
 	var task Task
 	if t.Next() {
 		t.mut.Lock()
 		task = t.tasks[t.curent]
 		t.curent++
+		t.mut.Unlock()
 		return task, nil
 	}
 	return task, nil
