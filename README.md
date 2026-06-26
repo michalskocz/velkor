@@ -162,22 +162,3 @@ Shows:
 * images
 * scripts
 * variables
-
----
-
-## 🧠 Design goals
-
-* simplicity over complexity
-* fast local CI feedback loop
-* reproducible container-based execution
-* minimal configuration overhead
-
----
-
-## 📈 Future improvements
-
-* caching support
-* conditional jobs (if/when rules)
-* matrix builds
-* remote execution agents
-* secrets management
