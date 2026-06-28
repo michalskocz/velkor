@@ -343,16 +343,26 @@ func createOverlayVolume(pwd string) (string, error) {
 	}
 
 	volume := "overlay-" + uuid.NewString()
-
-	cmd := exec.Command(
-		"docker", "volume", "create",
+	args := []string{
+		"volume", "create",
 		"--driver", "local",
 		"--opt", "type=overlay",
 		"--opt", "device=overlay",
 		"--opt", fmt.Sprintf("o=lowerdir=%s,upperdir=%s,workdir=%s",
 			pwd, upper, work),
 		volume,
+	}
+
+	cmd := exec.Command(
+		"docker", args...,
 	)
+
+	if debug == internal.DEBUG_ON {
+		log.Printf(
+			colorCyan+"[DEBUG] cmd=docker args=%s"+colorReset+"\n",
+			strings.Join(args, " "),
+		)
+	}
 
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("%v: %s", err, out)
