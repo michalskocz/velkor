@@ -160,7 +160,7 @@ func runTask(ctx context.Context, task configuration.Task) error {
 
 	env := buildEnv(task)
 	engine := resolveEngine(task)
-	runArgs, err := buildRunArgs(task, pwd)
+	runArgs, volume, err := buildRunArgs(task, pwd)
 
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func runTask(ctx context.Context, task configuration.Task) error {
 	}
 
 	defer func() {
-		stopTaskAndRM(context.Background(), task, engine, env, logFile)
+		stopTaskAndRM(task, engine, volume)
 	}()
 
 	if err := runCommand(ctx, engine, runArgs, env, logFile); err != nil {
@@ -216,7 +216,7 @@ func runScript(ctx context.Context, task configuration.Task, engine string, env 
 			log.Printf(
 				colorCyan+"[DEBUG]"+colorReset+" task=%s script=%d cmd=%s"+colorReset+"\n",
 				task.Name,
-				i,
+				i+1,
 				strings.Join(args, " "),
 			)
 		}
@@ -227,7 +227,7 @@ func runScript(ctx context.Context, task configuration.Task, engine string, env 
 		cmd.Stderr = logFile
 
 		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("task '%s' failed at line '%d:%s': %w", task.Name, i, line, err)
+			return fmt.Errorf("task '%s' failed at line '%d:%s': %w", task.Name, i+1, line, err)
 		}
 	}
 	return nil
@@ -264,9 +264,11 @@ func copyArtifacts(ctx context.Context, task configuration.Task, engine string, 
 	return nil
 }
 
-func stopTaskAndRM(ctx context.Context, task configuration.Task, engine string, env []string, logFile *os.File) {
-	_ = exec.Command(engine, "kill", task.Name).Run()
-	_ = exec.Command(engine, "rm", "-f", task.Name).Run()
+func stopTaskAndRM(task configuration.Task, engine string, volume string) {
+	_ = exec.Command(engine, "rm", "-f", "-t", "0", task.Name).Run()
+	if task.Image.ContainerType == configuration.DOCKER {
+		_ = exec.Command("docker", "volume", "rm", "-f", volume).Run()
+	}
 }
 
 func createLogFile(task configuration.Task) (*os.File, error) {
@@ -305,17 +307,22 @@ func resolveEngine(task configuration.Task) string {
 	return "docker"
 }
 
-func buildRunArgs(task configuration.Task, pwd string) ([]string, error) {
+func buildRunArgs(task configuration.Task, pwd string) ([]string, string, error) {
 	args := []string{"run", "-dit"}
-
+	var volume string
 	if task.Image.ContainerType == configuration.DOCKER {
 		volume, err := createOverlayVolume(pwd)
 		if err != nil {
-			return []string{}, err
+			return []string{}, volume, err
 		}
 		args = append(args, "-v", fmt.Sprintf("%s:/workspace", volume))
 	} else {
 		args = append(args, "-v", fmt.Sprintf("%s:/workspace:O", pwd))
+		args = append(args, "--security-opt", "label=disable")
+	}
+
+	if !goodIsolation {
+		args = append(args, "--ipc=host", "--pid=host", "--userns=host")
 	}
 
 	args = append(args, "--name", task.Name, "-w", "/workspace")
@@ -323,7 +330,7 @@ func buildRunArgs(task configuration.Task, pwd string) ([]string, error) {
 	args = append(args, getContainerEnvironment(task)...)
 	args = append(args, task.Image.Name)
 
-	return args, nil
+	return args, volume, nil
 }
 
 func createOverlayVolume(pwd string) (string, error) {

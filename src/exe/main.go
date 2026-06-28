@@ -16,6 +16,7 @@ var debug int
 var file os.File
 var cfg configuration.Config
 var cpu int = 1
+var goodIsolation bool = false
 
 func parseArgs() {
 	parser := argparse.NewParser("Local Action", "Local ci/cd tool")
@@ -48,6 +49,12 @@ func parseArgs() {
 		},
 	})
 
+	fast_flag := parser.Selector("i", "isolation", []string{"ON", "OFF"}, &argparse.Options{
+		Required: false,
+		Default:  "ON",
+		Help:     "Uses flags that reduce security in exchange for performance. Default: ON",
+	})
+
 	if err := parser.Parse(os.Args); err != nil {
 		fmt.Print(parser.Usage(err))
 		os.Exit(-1)
@@ -61,8 +68,18 @@ func parseArgs() {
 			debug = internal.DEBUG_ON
 		}
 	}
+
 	if input_file != nil {
 		file = *input_file
+	}
+
+	if fast_flag != nil {
+		switch *fast_flag {
+		case "ON":
+			goodIsolation = true
+		case "OF":
+			goodIsolation = false
+		}
 	}
 
 	if cpu_per_container != nil {

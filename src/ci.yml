@@ -8,18 +8,14 @@ unit_tests:
   stage: test
   image: golang:1.26
   script:
+    - go mod download
+    - go vet ./...
     - go test -v ./...
-
-benchmarks:
-  stage: test
-  image: golang:1.26
-  script:
     - go test -bench="." -benchmem -run=^$ ./...
 
 build_app:
   stage: build
   image: golang:1.26
-  artifacts: ["dist/velkor"]
+  artifacts: ["velkor"]
   script:
-    - go build -o dist/velkor  ./exe
-    - ./dist/velkor --help
+    - go build -ldflags="-s -w" -o velkor  ./exe

@@ -44,58 +44,33 @@ cd src && chmod +x quick.sh
 
 ---
 
-## ▶️ Usage
-
-### Run pipeline
-
-```bash
-./velkor -f ci.yml
-```
-
-### Run with debug output
-
-```bash
-./velkor -f ci.yml -d DEBUG
-```
-
-### Help
-
-```bash
-./velkor --help
-```
-
----
-
 ## 🧾 CLI options
 
-| Flag                | Description                               |
-| ------------------- | ----------------------------------------- |
-| `-c  --cpu`         | Cores per container                       |
-| `-f, --file`        | Path to pipeline file (default: `ci.yml`) |
-| `-d, --debug-level` | `INFO` or `DEBUG`                         |
-| `-h, --help`        | Show help                                 |
+| Flag                | Description                                                              |
+| ------------------- | ------------------------------------------------------------------------ |
+| `-c  --cpu`         | CPU cores per container. Default: 1                                      |
+| `-f, --file`        | nput config file. Default: ci.yml                                        |
+| `-d, --debug-level` | How meny info you got. Default: INFO                                     |
+| `-h, --help`        | Show help                                                                |
+| `i, --isolation`    | Uses flags that reduce security in exchange for performance. Default: ON |
+---
 
+## 🧱 Performence
+CI/CD performance when building the project on my laptop [6c/12t]. 
+For testing, I'm running part of the CI/CD pipeline (Linux build and test) with an action[Github](.github/workflows/build.yml) [local](src/ci.yml). 
+
+| CLI                   | Time      |
+| --------------------- | --------- |
+| ./velkor              | 86 [s]    |
+| ./velkor -c 6         | 23 [s]    |         
+| ./velkor -c 12        | 15 [s]    |
+| ./velkor -c 12 -i OFF | 15 [s]    |
 ---
 
 ## ⚙️ Pipeline configuration
 
 Velkor uses a YAML file to define CI/CD pipelines. [Example](examples/c/ci.yml)
 
----
-
-## 🧱 Pipeline model
-
-Velkor executes pipelines in two layers:
-
-* **Stages** → executed sequentially
-* **Tasks (jobs)** → executed in parallel within a stage (limited by `threads`)
-
-```
-Pipeline
- ├── Stage: build   → jobs run in parallel
- ├── Stage: test    → jobs run in parallel
- └── Stage: run     → jobs run in parallel
-```
 
 ---
 
@@ -117,60 +92,3 @@ Each task runs inside a container:
 4. Execute stages sequentially
 5. Run tasks concurrently inside each stage
 6. Stop pipeline on first failure
-
----
-
-## 🌍 Variables
-
-### Global variables
-
-```yaml
-variables:
-  - ENV: "production"
-```
-### Local variables:
-```yaml
-build_client:
-  stage: build
-  image: ubuntu:latest
-  variables:
-    - CFLAGS: "-O3"
-  artifacts: ["out/client"]
-  script:
-    - mkdir out
-    - gcc $CFLAGS -o out/client  
-```
-
-
-Variables are injected into container environment.
-
----
-
-## 🧵 Concurrency
-
-Controlled via:
-
-```yaml
-threads: 4
-```
-
-* limits number of parallel jobs per stage
-* default: `1`
-
----
-
-## 🐞 Debug mode
-
-Enable configuration preview:
-
-```bash
-./velkor -f ci.yml -d DEBUG
-```
-
-Shows:
-
-* parsed stages
-* tasks
-* images
-* scripts
-* variables

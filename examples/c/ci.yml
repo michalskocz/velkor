@@ -5,7 +5,7 @@ stages:
 
 build_example:
   stage: build
-  image: ubuntu:24.04
+  image: ubuntu:26.04
   artifacts: ["build/"]
   variable:
     - FLAG: "-DCMAKE_BUILD_TYPE=Relese"
@@ -17,7 +17,7 @@ build_example:
 
 debug_example:
   stage: debug
-  image: ubuntu:24.04
+  image: ubuntu:26.04
   artifacts: ["build-debug/"]
   variables:
     - FLAG: "-DCMAKE_BUILD_TYPE=Debug"
@@ -29,7 +29,7 @@ debug_example:
 
 test_example:
   stage: test
-  image: ubuntu:24.04
+  image: ubuntu:26.04
   script:
     - apt-get update
     - apt-get install -y gcc cmake make
