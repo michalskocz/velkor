@@ -1,6 +1,6 @@
 stages:
-  - build
   - test
+  - build
 
 threads: 4
 
@@ -19,9 +19,7 @@ benchmarks:
 build_app:
   stage: build
   image: golang:1.26
-  variables:
-    - FLAGS: "test"
   artifacts: ["dist/velkor"]
   script:
     - go build -o dist/velkor  ./exe
-    - echo $FLAGS
+    - ./dist/velkor --help

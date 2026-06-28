@@ -39,7 +39,7 @@ Build the project using the project. The result will be in artifacts/dist/velkor
 
 ```bash
 cd src && chmod +x quick.sh
-quick.sh
+./quick.sh
 ````
 
 ---
@@ -70,6 +70,7 @@ quick.sh
 
 | Flag                | Description                               |
 | ------------------- | ----------------------------------------- |
+| `-c  --cpu`         | Cores per container                       |
 | `-f, --file`        | Path to pipeline file (default: `ci.yml`) |
 | `-d, --debug-level` | `INFO` or `DEBUG`                         |
 | `-h, --help`        | Show help                                 |
@@ -78,7 +79,7 @@ quick.sh
 
 ## ⚙️ Pipeline configuration
 
-Velkor uses a YAML file to define CI/CD pipelines. [Example](src/ci.yml)
+Velkor uses a YAML file to define CI/CD pipelines. [Example](examples/c/ci.yml)
 
 ---
 

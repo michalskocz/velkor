@@ -90,6 +90,7 @@ log_info "Starting environment check..."
 check_dependencies
 
 log_info "Building the project..."
+
 if go build -o velkor ./exe; then
     log_succ "Successfully built the 'velkor' executable."
 else
@@ -97,4 +98,4 @@ else
 fi
 
 log_info "Running application in DEBUG mode..."
-./velkor -d DEBUG
+./velkor -d DEBUG -c 1

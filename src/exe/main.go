@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"velkor/configuration"
 	"velkor/internal"
 
@@ -14,6 +15,7 @@ import (
 var debug int
 var file os.File
 var cfg configuration.Config
+var cpu int = 1
 
 func parseArgs() {
 	parser := argparse.NewParser("Local Action", "Local ci/cd tool")
@@ -28,6 +30,22 @@ func parseArgs() {
 		Required: false,
 		Default:  internal.DEFAULT_INPUT_FILE,
 		Help:     "Input config file",
+	})
+
+	cpu_per_container := parser.Int("c", "cpu", &argparse.Options{
+		Required: false,
+		Default:  cpu,
+		Help:     "CPU cores per container",
+		Validate: func(args []string) error {
+			v, err := strconv.Atoi(args[0])
+			if err != nil {
+				return fmt.Errorf("CPU must be an int")
+			}
+			if v <= 0 {
+				return fmt.Errorf("CPU must be > 0")
+			}
+			return nil
+		},
 	})
 
 	if err := parser.Parse(os.Args); err != nil {
@@ -47,6 +65,9 @@ func parseArgs() {
 		file = *input_file
 	}
 
+	if cpu_per_container != nil {
+		cpu = *cpu_per_container
+	}
 }
 
 func getConfig() {

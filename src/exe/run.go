@@ -68,16 +68,17 @@ func runStage(stage configuration.Stage) error {
 	workers := resolveWorkers()
 
 	var wg sync.WaitGroup
-	errChan := make(chan error, workers)
 	sem := make(chan struct{}, workers)
+
+	errCh := make(chan error, 1)
 
 	if err := os.MkdirAll(internal.LOG_DIR, 0755); err != nil {
 		return fmt.Errorf("cannot create %s dir", internal.LOG_DIR)
 	}
 
 	for stage.Tasks.Next() {
-		if err := ctx.Err(); err != nil {
-			return err
+		if ctx.Err() != nil {
+			break
 		}
 
 		task, err := fetchTask(stage)
@@ -86,7 +87,12 @@ func runStage(stage configuration.Stage) error {
 			return err
 		}
 
-		sem <- struct{}{}
+		select {
+		case sem <- struct{}{}:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+
 		wg.Add(1)
 
 		go func(t configuration.Task) {
@@ -94,16 +100,19 @@ func runStage(stage configuration.Stage) error {
 			defer func() { <-sem }()
 
 			if err := runTask(ctx, t); err != nil {
-				errChan <- err
-				cancel()
+				select {
+				case errCh <- err:
+					cancel()
+				default:
+				}
 			}
 		}(task)
 	}
 
 	wg.Wait()
-	close(errChan)
+	close(errCh)
 
-	if err := <-errChan; err != nil {
+	if err := <-errCh; err != nil {
 		return err
 	}
 
@@ -166,7 +175,9 @@ func runTask(ctx context.Context, task configuration.Task) error {
 		)
 	}
 
-	defer stopTaskAndRM(ctx, task, engine, env, logFile)
+	defer func() {
+		stopTaskAndRM(context.Background(), task, engine, env, logFile)
+	}()
 
 	if err := runCommand(ctx, engine, runArgs, env, logFile); err != nil {
 
@@ -253,26 +264,9 @@ func copyArtifacts(ctx context.Context, task configuration.Task, engine string, 
 	return nil
 }
 
-func stopTaskAndRM(ctx context.Context, task configuration.Task, engine string, env []string, logFile *os.File) error {
-	cmd := exec.CommandContext(ctx, engine, "stop", task.Name)
-	cmd.Env = env
-	cmd.Stdout = logFile
-	cmd.Stderr = logFile
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("task '%s' failed: %w", task.Name, err)
-	}
-
-	rm := exec.CommandContext(ctx, engine, "rm", "-f", task.Name)
-	rm.Env = env
-	rm.Stdout = logFile
-	rm.Stderr = logFile
-
-	if err := rm.Run(); err != nil {
-		return fmt.Errorf("task '%s' failed: %w", task.Name, err)
-	}
-
-	return nil
+func stopTaskAndRM(ctx context.Context, task configuration.Task, engine string, env []string, logFile *os.File) {
+	_ = exec.Command(engine, "kill", task.Name).Run()
+	_ = exec.Command(engine, "rm", "-f", task.Name).Run()
 }
 
 func createLogFile(task configuration.Task) (*os.File, error) {
@@ -325,6 +319,7 @@ func buildRunArgs(task configuration.Task, pwd string) ([]string, error) {
 	}
 
 	args = append(args, "--name", task.Name, "-w", "/workspace")
+	args = append(args, fmt.Sprintf("--cpus=%d", cpu))
 	args = append(args, getContainerEnvironment(task)...)
 	args = append(args, task.Image.Name)
 

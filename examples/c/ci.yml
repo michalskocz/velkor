@@ -1,0 +1,37 @@
+stages:
+  - build
+  - debug
+  - test
+
+build_example:
+  stage: build
+  image: ubuntu:24.04
+  artifacts: ["build/"]
+  variable:
+    - FLAG: "-DCMAKE_BUILD_TYPE=Relese"
+  script:
+    - apt-get update
+    - apt-get install -y gcc cmake make
+    - cmake -S . -B build $FLAG
+    - cmake --build build
+
+debug_example:
+  stage: debug
+  image: ubuntu:24.04
+  artifacts: ["build-debug/"]
+  variables:
+    - FLAG: "-DCMAKE_BUILD_TYPE=Debug"
+  script:
+    - apt-get update
+    - apt-get install -y gcc cmake make
+    - cmake -S . -B build-debug $FLAG
+    - cmake --build build-debug
+
+test_example:
+  stage: test
+  image: ubuntu:24.04
+  script:
+    - apt-get update
+    - apt-get install -y gcc cmake make
+    - ctest --test-dir artifacts/build_example/build
+    - ctest --test-dir artifacts/debug_example/build-debug

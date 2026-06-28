@@ -41,3 +41,4 @@ velkor.exe
 log
 artifacts
 *.log
+.cache
