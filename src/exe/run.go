@@ -325,7 +325,7 @@ func buildRunArgs(task configuration.Task, pwd string) ([]string, error) {
 	}
 
 	args = append(args, "--name", task.Name, "-w", "/workspace")
-	args = append(args, getEnvironment(task)...)
+	args = append(args, getContainerEnvironment(task)...)
 	args = append(args, task.Image.Name)
 
 	return args, nil
@@ -361,7 +361,7 @@ func createOverlayVolume(pwd string) (string, error) {
 	return volume, nil
 }
 
-func getEnvironment(task configuration.Task) []string {
+func getContainerEnvironment(task configuration.Task) []string {
 	args := []string{}
 	for _, v := range cfg.GlobalVariables {
 		args = append(args, "-e", fmt.Sprintf("%s=%s", v.Name, v.Value))
