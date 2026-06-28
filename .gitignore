@@ -40,3 +40,4 @@ velkor
 velkor.exe
 log
 artifacts
+*.log

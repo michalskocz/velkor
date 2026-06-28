@@ -11,6 +11,8 @@ import (
 	"sync"
 	"velkor/configuration"
 	"velkor/internal"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -149,7 +151,11 @@ func runTask(ctx context.Context, task configuration.Task) error {
 
 	env := buildEnv(task)
 	engine := resolveEngine(task)
-	runArgs := buildRunArgs(task, pwd)
+	runArgs, err := buildRunArgs(task, pwd)
+
+	if err != nil {
+		return err
+	}
 
 	if debug == internal.DEBUG_ON {
 		log.Printf(
@@ -305,14 +311,58 @@ func resolveEngine(task configuration.Task) string {
 	return "docker"
 }
 
-func buildRunArgs(task configuration.Task, pwd string) []string {
-	args := []string{
-		"run", "-dit",
-		"--name", task.Name,
-		"-v", fmt.Sprintf("%s:/workspace:O", pwd),
-		"-w", "/workspace",
+func buildRunArgs(task configuration.Task, pwd string) ([]string, error) {
+	args := []string{"run", "-dit"}
+
+	if task.Image.ContainerType == configuration.DOCKER {
+		volume, err := createOverlayVolume(pwd)
+		if err != nil {
+			return []string{}, err
+		}
+		args = append(args, "-v", fmt.Sprintf("%s:/workspace", volume))
+	} else {
+		args = append(args, "-v", fmt.Sprintf("%s:/workspace:O", pwd))
 	}
 
+	args = append(args, "--name", task.Name, "-w", "/workspace")
+	args = append(args, getEnvironment(task)...)
+	args = append(args, task.Image.Name)
+
+	return args, nil
+}
+
+func createOverlayVolume(pwd string) (string, error) {
+	upper := filepath.Join(os.TempDir(), uuid.NewString(), "upper")
+	work := filepath.Join(os.TempDir(), uuid.NewString(), "work")
+
+	if err := os.MkdirAll(upper, 0755); err != nil {
+		return "", err
+	}
+	if err := os.MkdirAll(work, 0755); err != nil {
+		return "", err
+	}
+
+	volume := "overlay-" + uuid.NewString()
+
+	cmd := exec.Command(
+		"docker", "volume", "create",
+		"--driver", "local",
+		"--opt", "type=overlay",
+		"--opt", "device=overlay",
+		"--opt", fmt.Sprintf("o=lowerdir=%s,upperdir=%s,workdir=%s",
+			pwd, upper, work),
+		volume,
+	)
+
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("%v: %s", err, out)
+	}
+
+	return volume, nil
+}
+
+func getEnvironment(task configuration.Task) []string {
+	args := []string{}
 	for _, v := range cfg.GlobalVariables {
 		args = append(args, "-e", fmt.Sprintf("%s=%s", v.Name, v.Value))
 	}
@@ -320,9 +370,6 @@ func buildRunArgs(task configuration.Task, pwd string) []string {
 	for _, v := range task.Variables {
 		args = append(args, "-e", fmt.Sprintf("%s=%s", v.Name, v.Value))
 	}
-
-	args = append(args, task.Image.Name)
-
 	return args
 }
 

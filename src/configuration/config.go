@@ -139,62 +139,67 @@ const (
 func (c *Config) String() string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("\n%s%s=== CONFIGURATION ===%s\n", colorBold, colorCyan, colorReset))
-	sb.WriteString(fmt.Sprintf("%sThreads:%s %d\n", colorBold, colorReset, c.Threads))
+	fmt.Fprintf(&sb, "\n%s%s=== CONFIGURATION ===%s\n", colorBold, colorCyan, colorReset)
+	fmt.Fprintf(&sb, "%sThreads:%s %d\n", colorBold, colorReset, c.Threads)
+	fmt.Fprintf(&sb, "\n%s%s[Global Variables]%s\n", colorBold, colorBlue, colorReset)
 
-	sb.WriteString(fmt.Sprintf("\n%s%s[Global Variables]%s\n", colorBold, colorBlue, colorReset))
 	if len(c.GlobalVariables) == 0 {
 		sb.WriteString("  None\n")
-	}
-	for _, v := range c.GlobalVariables {
-		sb.WriteString(fmt.Sprintf("  %s%s%s = %s%s%s\n", colorGreen, v.Name, colorReset, colorYellow, v.Value, colorReset))
+	} else {
+		for _, v := range c.GlobalVariables {
+			fmt.Fprintf(&sb, "  %s%s%s = %s%s%s\n", colorGreen, v.Name, colorReset, colorYellow, v.Value, colorReset)
+		}
 	}
 
-	sb.WriteString(fmt.Sprintf("\n%s%s[Stages and Tasks]%s\n", colorBold, colorPurple, colorReset))
+	fmt.Fprintf(&sb, "\n%s%s[Stages and Tasks]%s\n", colorBold, colorPurple, colorReset)
 	if len(c.Stages.stages) == 0 {
 		sb.WriteString("  No stages defined\n")
 	}
 
 	for i, stage := range c.Stages.stages {
-		sb.WriteString(fmt.Sprintf("%s► Stage %d: %s%s\n", colorBold, i+1, stage.Name, colorReset))
+		fmt.Fprintf(&sb, "%s► Stage %d: %s%s\n", colorBold, i+1, stage.Name, colorReset)
 
-		if stage.Tasks == nil || len(stage.Tasks.tasks) == 0 {
+		if stage.Tasks == nil {
 			sb.WriteString("    No tasks\n")
 			continue
 		}
 
 		stage.Tasks.mut.Lock()
-		for _, task := range stage.Tasks.tasks {
-			sb.WriteString(fmt.Sprintf("    %s◇ Task: %s%s\n", colorCyan, task.Name, colorReset))
+		tasks := stage.Tasks.tasks
+		if len(tasks) == 0 {
+			sb.WriteString("    No tasks\n")
+		}
+
+		for _, task := range tasks {
+			fmt.Fprintf(&sb, "    %s◇ Task: %s%s\n", colorCyan, task.Name, colorReset)
 
 			cType := "Docker"
 			if task.Image.ContainerType == PODMAN {
 				cType = "Podman"
 			}
 
-			sb.WriteString(fmt.Sprintf("      Image:  %s%s%s (%s)\n", colorYellow, task.Image.Name, colorReset, cType))
+			fmt.Fprintf(&sb, "      Image:  %s%s%s (%s)\n", colorYellow, task.Image.Name, colorReset, cType)
 			if task.Image.Repo != "" {
-				sb.WriteString(fmt.Sprintf("      Repo:   %s\n", task.Image.Repo))
+				fmt.Fprintf(&sb, "      Repo:   %s\n", task.Image.Repo)
 			}
 
 			if len(task.Variables) > 0 {
 				sb.WriteString("      Task variables:\n")
 				for _, tv := range task.Variables {
-					sb.WriteString(fmt.Sprintf("        %s%s%s = %s\n", colorGreen, tv.Name, colorReset, tv.Value))
+					fmt.Fprintf(&sb, "        %s%s%s = %s\n", colorGreen, tv.Name, colorReset, tv.Value)
 				}
 			}
 
 			if len(task.Script) > 0 {
 				sb.WriteString("      Script:\n")
 				for _, line := range task.Script {
-					sb.WriteString(fmt.Sprintf("        > %s\n", line))
+					fmt.Fprintf(&sb, "        > %s\n", line)
 				}
 			}
 		}
 		stage.Tasks.mut.Unlock()
 	}
 
-	sb.WriteString(fmt.Sprintf("%s%s====================%s\n", colorBold, colorCyan, colorReset))
-
+	fmt.Fprintf(&sb, "%s%s====================%s\n", colorBold, colorCyan, colorReset)
 	return sb.String()
 }
