@@ -159,7 +159,7 @@ func runTask(ctx context.Context, task configuration.Task) error {
 
 	if debug == internal.DEBUG_ON {
 		log.Printf(
-			colorCyan+"[DEBUG] task=%s engine=%s args=%s"+colorReset+"\n",
+			colorCyan+"[DEBUG]"+colorReset+" task=%s engine=%s args=%s"+colorReset+"\n",
 			task.Name,
 			engine,
 			strings.Join(runArgs, " "),
@@ -181,7 +181,7 @@ func runTask(ctx context.Context, task configuration.Task) error {
 		return err
 	}
 
-	log.Printf(colorGreen+"[Task: %s] Completed successfully."+colorReset+"\n", task.Name)
+	log.Printf(colorGreen+"[Task: %s]"+colorReset+" Completed successfully."+colorReset+"\n", task.Name)
 	return nil
 }
 
@@ -203,7 +203,7 @@ func runScript(ctx context.Context, task configuration.Task, engine string, env 
 
 		if debug == internal.DEBUG_ON {
 			log.Printf(
-				colorCyan+"[DEBUG] task=%s script=%d cmd=%s"+colorReset+"\n",
+				colorCyan+"[DEBUG]"+colorReset+" task=%s script=%d cmd=%s"+colorReset+"\n",
 				task.Name,
 				i,
 				strings.Join(args, " "),
@@ -234,7 +234,7 @@ func copyArtifacts(ctx context.Context, task configuration.Task, engine string, 
 
 		if debug == internal.DEBUG_ON {
 			log.Printf(
-				colorCyan+"[DEBUG] task=%s artifact=%s cmd=%s"+colorReset+"\n",
+				colorCyan+"[DEBUG]"+colorReset+" task=%s artifact=%s cmd=%s"+colorReset+"\n",
 				task.Name,
 				a,
 				strings.Join(args, " "),
@@ -359,7 +359,7 @@ func createOverlayVolume(pwd string) (string, error) {
 
 	if debug == internal.DEBUG_ON {
 		log.Printf(
-			colorCyan+"[DEBUG] cmd=docker args=%s"+colorReset+"\n",
+			colorCyan+"[DEBUG]"+colorReset+" cmd=docker args=%s"+colorReset+"\n",
 			strings.Join(args, " "),
 		)
 	}
