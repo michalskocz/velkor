@@ -4,7 +4,7 @@
 
 [![License](https://img.shields.io/badge/license-BSD%202--Clause-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go)](https://go.dev/)
-[![Release](https://img.shields.io/github/v/release/michalskocz/velkor)](https://github.com/twoj-login/twoje-repo/releases)
+[![Release](https://img.shields.io/github/v/release/michalskocz/velkor)](https://github.com/michalskocz/velkor/releases)
 
 
 ---
