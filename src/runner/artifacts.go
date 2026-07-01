@@ -11,9 +11,47 @@
 
 */
 
-package internal
+package runner
 
-const (
-	DEFAULT_INPUT_FILE = "ci.yml"
-	LOG_DIR            = "log"
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"velkor/configuration"
+	"velkor/internal"
 )
+
+func copyArtifacts(ctx context.Context, task configuration.Task, engine string, env []string, logFile *os.File) error {
+	for _, a := range task.Artifacts {
+		dest := filepath.Join("artifacts", task.Name, filepath.Dir(a))
+
+		if err := os.MkdirAll(dest, 0755); err != nil {
+			return fmt.Errorf("failed to create artifact directory '%s': %w", dest, err)
+		}
+
+		args := buildCopyArgs(task, a)
+
+		if debug == internal.DEBUG_ON {
+			log.Printf(
+				colorCyan+"[DEBUG]"+colorReset+" task=%s artifact=%s cmd=%s"+colorReset+"\n",
+				task.Name,
+				a,
+				strings.Join(args, " "),
+			)
+		}
+
+		cmd := exec.CommandContext(ctx, engine, args...)
+		cmd.Env = env
+		cmd.Stdout = logFile
+		cmd.Stderr = logFile
+
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("task '%s' failed at artifact [%s]: %w", task.Name, a, err)
+		}
+	}
+	return nil
+}

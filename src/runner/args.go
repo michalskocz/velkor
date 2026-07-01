@@ -11,9 +11,47 @@
 
 */
 
-package internal
+package runner
 
-const (
-	DEFAULT_INPUT_FILE = "ci.yml"
-	LOG_DIR            = "log"
+import (
+	"fmt"
+	"velkor/configuration"
 )
+
+func buildExecArgs(task configuration.Task, line string) []string {
+	return []string{"exec", task.Name, "sh", "-c", line}
+}
+
+func buildCopyArgs(task configuration.Task, artifact string) []string {
+	return []string{
+		"cp",
+		fmt.Sprintf("%s:/workspace/%s", task.Name, artifact),
+		fmt.Sprintf("artifacts/%s/%s", task.Name, artifact),
+	}
+}
+
+func buildRunArgs(task configuration.Task, pwd string) ([]string, string, error) {
+	args := []string{"run", "-dit"}
+	var volume string
+	if task.Image.ContainerType == configuration.DOCKER {
+		volume, err := createOverlayVolume(pwd)
+		if err != nil {
+			return []string{}, volume, err
+		}
+		args = append(args, "-v", fmt.Sprintf("%s:/workspace", volume))
+	} else {
+		args = append(args, "-v", fmt.Sprintf("%s:/workspace:O", pwd))
+		args = append(args, "--security-opt", "label=disable")
+	}
+
+	if !goodIsolation {
+		args = append(args, "--ipc=host", "--pid=host", "--userns=host")
+	}
+
+	args = append(args, "--name", task.Name, "-w", "/workspace")
+	args = append(args, fmt.Sprintf("--cpus=%d", cpu))
+	args = append(args, getContainerEnvironment(task)...)
+	args = append(args, task.Image.Name)
+
+	return args, volume, nil
+}

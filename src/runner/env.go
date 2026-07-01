@@ -11,9 +11,36 @@
 
 */
 
-package internal
+package runner
 
-const (
-	DEFAULT_INPUT_FILE = "ci.yml"
-	LOG_DIR            = "log"
+import (
+	"fmt"
+	"os"
+	"velkor/configuration"
 )
+
+func getContainerEnvironment(task configuration.Task) []string {
+	args := []string{}
+	for _, v := range cfg.GlobalVariables {
+		args = append(args, "-e", fmt.Sprintf("%s=%s", v.Name, v.Value))
+	}
+
+	for _, v := range task.Variables {
+		args = append(args, "-e", fmt.Sprintf("%s=%s", v.Name, v.Value))
+	}
+	return args
+}
+
+func buildEnv(task configuration.Task) []string {
+	env := os.Environ()
+
+	for _, v := range cfg.GlobalVariables {
+		env = append(env, fmt.Sprintf("%s=\"%s\"", v.Name, v.Value))
+	}
+
+	for _, v := range task.Variables {
+		env = append(env, fmt.Sprintf("%s=\"%s\"", v.Name, v.Value))
+	}
+
+	return env
+}

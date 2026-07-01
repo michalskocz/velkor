@@ -11,9 +11,34 @@
 
 */
 
-package internal
+package runner
 
-const (
-	DEFAULT_INPUT_FILE = "ci.yml"
-	LOG_DIR            = "log"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"velkor/configuration"
 )
+
+func resolveWorkers() int {
+	if cfg.Threads <= 0 {
+		return configuration.DEFAULT_THREADS
+	}
+	return cfg.Threads
+}
+
+func createLogFile(task configuration.Task) (*os.File, error) {
+	image := strings.ReplaceAll(task.Image.Name, "/", "_")
+	image = strings.ReplaceAll(image, ":", "_")
+
+	name := fmt.Sprintf("%s_%s.log", task.Name, image)
+	path := filepath.Join("log", name)
+
+	file, err := os.Create(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create log file: %w", err)
+	}
+
+	return file, nil
+}

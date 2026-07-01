@@ -11,9 +11,8 @@
 
 */
 
-package internal
+package main
 
-const (
-	DEFAULT_INPUT_FILE = "ci.yml"
-	LOG_DIR            = "log"
-)
+func main() {
+
+}
