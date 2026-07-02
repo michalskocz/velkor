@@ -67,7 +67,7 @@ jobs:
           CGO_ENABLED: 0
         run: |
           mkdir -p dist
-          go build -ldflags="-s -w" -o dist/${{ matrix.binary }} ./exe
+          go build -ldflags="-s -w" -o dist/${{ matrix.binary }} ./velkor
 
       - name: Build RPM and DEB packages
         if: matrix.goos == 'linux'
@@ -78,22 +78,6 @@ jobs:
           if [[ "${GITHUB_REF}" != refs/tags/* ]]; then
             VERSION="0.0.1"
           fi
-
-          cat <<EOF > nfpm.yaml
-name: "velkor"
-arch: "amd64"
-platform: "linux"
-version: "${VERSION}"
-section: "utils"
-priority: "optional"
-maintainer: "Michał Skoczylas"
-description: "Velkor CLI tool"
-homepage: "https://github.com/${{ github.repository }}"
-license: "BSD-2-Clause"
-contents:
-  - src: dist/velkor
-    dst: /usr/bin/velkor
-EOF
 
           nfpm package --config nfpm.yaml --target dist/velkor.deb
           nfpm package --config nfpm.yaml --target dist/velkor.rpm

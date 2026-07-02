@@ -1,0 +1,13 @@
+name: "velkor"
+arch: "amd64"
+platform: "linux"
+version: "v1.2.2"
+section: "utils"
+priority: "optional"
+maintainer: "Michał Skoczylas"
+description: "Velkor CLI tool"
+homepage: "https://github.com/michalskocz/velkor"
+license: "BSD-2-Clause"
+contents:
+  - src: dist/velkor
+    dst: /usr/bin/velkor
