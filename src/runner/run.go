@@ -27,14 +27,6 @@ import (
 	"github.com/google/uuid"
 )
 
-const (
-	colorReset  = "\033[0m"
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorCyan   = "\033[36m"
-)
-
 var cfg configuration.Config
 var debug int
 var goodIsolation bool
@@ -46,7 +38,7 @@ func RunPipeline(Config configuration.Config, Isolation bool, Cpu int, Debug int
 	cpu = Cpu
 	debug = Debug
 
-	log.Println(colorCyan + "Starting CI/CD pipeline..." + colorReset)
+	log.Println(internal.ColorCyan + "Starting CI/CD pipeline..." + internal.ColorReset)
 
 	for cfg.Stages.Next() {
 		stage, err := fetchStage()
@@ -54,14 +46,14 @@ func RunPipeline(Config configuration.Config, Isolation bool, Cpu int, Debug int
 			return err
 		}
 
-		log.Printf(colorCyan+"--- Running Stage: %s ---"+colorReset+"\n", stage.Name)
+		log.Printf(internal.ColorCyan+"--- Running Stage: %s ---"+internal.ColorReset+"\n", stage.Name)
 
 		if err := runStage(stage); err != nil {
-			return fmt.Errorf(colorRed+"pipeline aborted at stage '%s': %w"+colorReset, stage.Name, err)
+			return fmt.Errorf(internal.ColorRed+"pipeline aborted at stage '%s': %w"+internal.ColorReset, stage.Name, err)
 		}
 	}
 
-	log.Println(colorGreen + "Success! All stages completed successfully." + colorReset)
+	log.Println(internal.ColorGreen + "Success! All stages completed successfully." + internal.ColorReset)
 	return nil
 }
 
@@ -83,7 +75,7 @@ func runScript(ctx context.Context, task configuration.Task, engine string, env 
 
 		if debug == internal.DEBUG_ON {
 			log.Printf(
-				colorCyan+"[DEBUG]"+colorReset+" task=%s script=%d cmd=%s"+colorReset+"\n",
+				internal.ColorCyan+"[DEBUG]"+internal.ColorReset+" task=%s script=%d cmd=%s"+internal.ColorReset+"\n",
 				task.Name,
 				i+1,
 				strings.Join(args, " "),
@@ -144,7 +136,7 @@ func createOverlayVolume(pwd string) (string, error) {
 
 	if debug == internal.DEBUG_ON {
 		log.Printf(
-			colorCyan+"[DEBUG]"+colorReset+" cmd=docker args=%s"+colorReset+"\n",
+			internal.ColorCyan+"[DEBUG]"+internal.ColorReset+" cmd=docker args=%s"+internal.ColorReset+"\n",
 			strings.Join(args, " "),
 		)
 	}

@@ -2,6 +2,9 @@ stages:
   - test
   - build
 
+variables:
+  - SRC: "./velkor"
+
 threads: 4
 
 unit_tests:
@@ -16,6 +19,6 @@ unit_tests:
 build_app:
   stage: build
   image: golang:1.26
-  artifacts: ["velkor"]
+  artifacts: ["velkor-ci"]
   script:
-    - go build -ldflags="-s -w" -o velkor  ./exe
+    - go build -ldflags="-s -w" -o velkor-ci  ${SRC}

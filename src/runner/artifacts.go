@@ -37,7 +37,7 @@ func copyArtifacts(ctx context.Context, task configuration.Task, engine string, 
 
 		if debug == internal.DEBUG_ON {
 			log.Printf(
-				colorCyan+"[DEBUG]"+colorReset+" task=%s artifact=%s cmd=%s"+colorReset+"\n",
+				internal.ColorCyan+"[DEBUG]"+internal.ColorReset+" task=%s artifact=%s cmd=%s"+internal.ColorReset+"\n",
 				task.Name,
 				a,
 				strings.Join(args, " "),

@@ -103,11 +103,13 @@ check_dependencies
 
 log_info "Building the project..."
 
-if go build -o velkor ./exe; then
+VERSION="1.2.2"
+
+if go build -o velkor-${VERSION} ./velkor; then
     log_succ "Successfully built the 'velkor' executable."
 else
     fatal "Error building the 'velkor' project."
 fi
 
 log_info "Running application in DEBUG mode..."
-./velkor -d DEBUG -c $(nproc)
+./velkor-${VERSION} -d DEBUG -c $(nproc)

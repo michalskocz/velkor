@@ -42,7 +42,7 @@ func runTask(ctx context.Context, task configuration.Task) error {
 		return nil
 	}
 
-	log.Printf(colorYellow+"[Task: %s]"+colorReset+" Running in container: %s\n", task.Name, task.Image.Name)
+	log.Printf(internal.ColorYellow+"[Task: %s]"+internal.ColorReset+" Running in container: %s\n", task.Name, task.Image.Name)
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -65,7 +65,7 @@ func runTask(ctx context.Context, task configuration.Task) error {
 
 	if debug == internal.DEBUG_ON {
 		log.Printf(
-			colorCyan+"[DEBUG]"+colorReset+" task=%s engine=%s args=%s"+colorReset+"\n",
+			internal.ColorCyan+"[DEBUG]"+internal.ColorReset+" task=%s engine=%s args=%s"+internal.ColorReset+"\n",
 			task.Name,
 			engine,
 			strings.Join(runArgs, " "),
@@ -89,6 +89,6 @@ func runTask(ctx context.Context, task configuration.Task) error {
 		return err
 	}
 
-	log.Printf(colorGreen+"[Task: %s]"+colorReset+" Completed successfully."+colorReset+"\n", task.Name)
+	log.Printf(internal.ColorGreen+"[Task: %s]"+internal.ColorReset+" Completed successfully."+internal.ColorReset+"\n", task.Name)
 	return nil
 }
