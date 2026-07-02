@@ -36,9 +36,10 @@ main
 bin
 build
 out
-velkor*
+velkor-*
 velkor.exe
 log
 artifacts
 *.log
 .cache
+examples/c/velkor
