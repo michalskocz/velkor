@@ -6,7 +6,7 @@ Currently, only the latest version is supported.
 
 | Version | Supported |
 | ------- | --------- |
-| 1.1.2   | ✅         |
+| 1.x.x   | ✅        |
 
 ## Reporting a Vulnerability
 
