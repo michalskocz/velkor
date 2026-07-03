@@ -16,7 +16,8 @@ package configuration
 import (
 	"fmt"
 	"strings"
-	"velkor/internal"
+
+	"github.com/michalskocz/velkor/src/internal"
 )
 
 func (c *Config) String() string {
@@ -62,9 +63,6 @@ func (c *Config) String() string {
 			}
 
 			fmt.Fprintf(&sb, "      Image:  %s%s%s (%s)\n", internal.ColorYellow, task.Image.Name, internal.ColorReset, cType)
-			if task.Image.Repo != "" {
-				fmt.Fprintf(&sb, "      Repo:   %s\n", task.Image.Repo)
-			}
 
 			if len(task.Variables) > 0 {
 				sb.WriteString("      Task variables:\n")

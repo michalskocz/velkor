@@ -18,9 +18,12 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"velkor/configuration"
-	"velkor/internal"
-	"velkor/runner"
+
+	"github.com/michalskocz/velkor/src/internal"
+
+	"github.com/michalskocz/velkor/src/runner"
+
+	"github.com/michalskocz/velkor/src/configuration"
 
 	"github.com/akamensky/argparse"
 )

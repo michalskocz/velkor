@@ -21,8 +21,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"velkor/configuration"
-	"velkor/internal"
+
+	"github.com/michalskocz/velkor/src/configuration"
+	"github.com/michalskocz/velkor/src/internal"
 
 	"github.com/google/uuid"
 )

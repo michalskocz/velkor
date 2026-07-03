@@ -1,9 +1,12 @@
 stages:
   - test
   - build
+  - package
+  - smoke
 
 variables:
   - SRC: "./velkor"
+  - PAC: "artifacts/build_packages"
 
 threads: 4
 
@@ -22,3 +25,49 @@ build_app:
   artifacts: ["velkor-ci"]
   script:
     - go build -ldflags="-s -w" -o velkor-ci  ${SRC}
+
+build_packages:
+  stage: package
+  image: golang:1.26
+  artifacts: ["velkor.deb", "velkor.rpm", "velkor.apk"]
+  script:
+    - go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+    - mkdir dist
+    - cp artifacts/build_app/velkor-ci dist/velkor
+    - nfpm package --config nfpm.yaml --target velkor.deb
+    - nfpm package --config nfpm.yaml --target velkor.rpm
+    - nfpm package --config nfpm.yaml --target velkor.apk
+
+install_fedora:
+  stage: smoke
+  image: fedora:44
+  script:
+    - cp ${PAC}/velkor.rpm velkor.rpm
+    - dnf install -y ./velkor.rpm
+    - velkor --help
+
+install_suse:
+  stage: smoke
+  image: opensuse/leap:16.0
+  script:
+    - cp ${PAC}/velkor.rpm velkor.rpm
+    - zypper -n in -y --allow-unsigned-rpm ./velkor.rpm
+    - velkor --help
+
+install_ubuntu:
+  stage: smoke
+  image: ubuntu:26.04
+  script:
+    - cp ${PAC}/velkor.deb velkor.deb
+    - apt update
+    - apt install -y ./velkor.deb
+    - velkor --help
+
+install_debian:
+  stage: smoke
+  image: debian:12
+  script:
+    - cp ${PAC}/velkor.deb velkor.deb
+    - apt update
+    - apt install -y ./velkor.deb
+    - velkor --help

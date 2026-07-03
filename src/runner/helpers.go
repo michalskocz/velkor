@@ -18,7 +18,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"velkor/configuration"
+
+	"github.com/michalskocz/velkor/src/configuration"
 )
 
 func resolveWorkers() int {

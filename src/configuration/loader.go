@@ -30,7 +30,6 @@ const (
 type yamlTask struct {
 	Stage     string              `yaml:"stage"`
 	Image     string              `yaml:"image"`
-	Repo      string              `yaml:"repo"`
 	Type      string              `yaml:"type"`
 	Script    []string            `yaml:"script"`
 	Artifacts []string            `yaml:"artifacts"`
@@ -199,7 +198,6 @@ func parseTasks(data *map[string]yaml.Node, config *Config, taskMap *map[string]
 			Image: DockerImage{
 				ContainerType: containerType,
 				Name:          yt.Image,
-				Repo:          yt.Repo,
 			},
 			Script:    yt.Script,
 			Variables: taskVars,

@@ -21,8 +21,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"velkor/configuration"
-	"velkor/internal"
+
+	"github.com/michalskocz/velkor/src/internal"
+
+	"github.com/michalskocz/velkor/src/configuration"
 )
 
 func copyArtifacts(ctx context.Context, task configuration.Task, engine string, env []string, logFile *os.File) error {

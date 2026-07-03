@@ -16,7 +16,8 @@ package runner
 import (
 	"fmt"
 	"os"
-	"velkor/configuration"
+
+	"github.com/michalskocz/velkor/src/configuration"
 )
 
 func getContainerEnvironment(task configuration.Task) []string {

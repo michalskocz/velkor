@@ -1,4 +1,4 @@
-module velkor
+module github.com/michalskocz/velkor/src
 
 go 1.26.3
 

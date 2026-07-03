@@ -18,8 +18,10 @@ import (
 	"fmt"
 	"os"
 	"sync"
-	"velkor/configuration"
-	"velkor/internal"
+
+	"github.com/michalskocz/velkor/src/internal"
+
+	"github.com/michalskocz/velkor/src/configuration"
 )
 
 func fetchStage() (configuration.Stage, error) {

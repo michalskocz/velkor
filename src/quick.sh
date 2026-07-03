@@ -103,7 +103,7 @@ check_dependencies
 
 log_info "Building the project..."
 
-VERSION="1.2.2"
+VERSION="1.4.1"
 
 if go build -o velkor-${VERSION} ./velkor; then
     log_succ "Successfully built the 'velkor' executable."

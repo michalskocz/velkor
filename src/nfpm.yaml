@@ -1,7 +1,7 @@
 name: "velkor"
 arch: "amd64"
 platform: "linux"
-version: "v1.2.2"
+version: "v1.4.1"
 section: "utils"
 priority: "optional"
 maintainer: "Michał Skoczylas"

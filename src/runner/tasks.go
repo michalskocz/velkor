@@ -19,8 +19,10 @@ import (
 	"log"
 	"os"
 	"strings"
-	"velkor/configuration"
-	"velkor/internal"
+
+	"github.com/michalskocz/velkor/src/internal"
+
+	"github.com/michalskocz/velkor/src/configuration"
 )
 
 func fetchTask(stage configuration.Stage) (configuration.Task, error) {
@@ -77,7 +79,6 @@ func runTask(ctx context.Context, task configuration.Task) error {
 	}()
 
 	if err := runCommand(ctx, engine, runArgs, env, logFile); err != nil {
-
 		return fmt.Errorf("task '%s' failed %v", task.Name, err)
 	}
 

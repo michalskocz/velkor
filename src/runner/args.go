@@ -15,7 +15,8 @@ package runner
 
 import (
 	"fmt"
-	"velkor/configuration"
+
+	"github.com/michalskocz/velkor/src/configuration"
 )
 
 func buildExecArgs(task configuration.Task, line string) []string {

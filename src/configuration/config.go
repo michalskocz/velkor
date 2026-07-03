@@ -16,7 +16,8 @@ package configuration
 import (
 	"errors"
 	"sync"
-	"velkor/internal"
+
+	"github.com/michalskocz/velkor/src/internal"
 )
 
 type Variable struct {
@@ -31,7 +32,6 @@ const DEFAULT_CONTAINER_TYPE = DOCKER
 type DockerImage struct {
 	ContainerType int // Docker or Podman. Int in case of more option in feature
 	Name          string
-	Repo          string
 }
 
 type Task struct {
