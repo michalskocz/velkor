@@ -42,21 +42,21 @@ go install github.com/michalskocz/velkor/src/velkor@latest
 **Fedora / RHEL / CentOS / Rocky Linux:**
 
 ```bash
-curl -L -o velkor.rpm https://github.com/michalskocz/velkor/releases/download/v1.4.1/velkor.rpm
+curl -L -o velkor.rpm https://github.com/michalskocz/velkor/releases/download/v1.4.2/velkor.rpm
 sudo dnf install ./velkor.rpm
 ```
 
 **openSUSE:**
 
 ```bash
-curl -L -o velkor.rpm https://github.com/michalskocz/velkor/releases/download/v1.4.1/velkor.rpm
+curl -L -o velkor.rpm https://github.com/michalskocz/velkor/releases/download/v1.4.2/velkor.rpm
 sudo zypper install ./velkor.rpm
 ```
 
 **Debian / Ubuntu / Linux Mint:**
 
 ```bash
-curl -L -o velkor.deb https://github.com/michalskocz/velkor/releases/download/v1.4.1/velkor.deb
+curl -L -o velkor.deb https://github.com/michalskocz/velkor/releases/download/v1.4.2/velkor.deb
 sudo apt install ./velkor.deb
 ```
 

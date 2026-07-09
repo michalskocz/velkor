@@ -17,12 +17,16 @@
 
 */
 
-package internal
+package configuration
 
-const (
-	DEBUG_OFF_STR = "INFO"
-	DEBUG_OFF     = 0
-
-	DEBUG_ON_STR = "DEBUG"
-	DEBUG_ON     = 1
+import (
+	"os"
 )
+
+type Local struct {
+	Debug         int
+	File          os.File
+	Cfg           *Config
+	Cpu           int
+	GoodIsolation bool
+}
