@@ -13,18 +13,38 @@
 
 </div>
 
----
+<div align="center">
 
-## 🚀 Features
+<table>
+<tr>
+<td width="33%">
 
-- GitHub Actions–like YAML pipeline syntax
-- Local execution of CI/CD pipelines
-- Container-based isolation (Auto-detects Docker or Podman)
-- Multi-stage pipelines with strict ordering
-- Parallel task execution within stages
-- Global and task-level environment variables
-- Configurable worker threads
-- Detailed debug mode for configuration inspection
+### 🚀 Pipelines
+- GitHub Actions–like YAML syntax
+- Multi-stage execution
+- Strict ordering
+
+</td>
+<td width="33%">
+
+### ⚡ Execution
+- Local CI/CD runs
+- Parallel tasks
+- Configurable workers
+
+</td>
+<td width="33%">
+
+### 🔒 Isolation
+- Docker support
+- Podman support
+- Environment variables
+
+</td>
+</tr>
+</table>
+
+</div>
 
 ---
 
@@ -37,7 +57,7 @@ Alternatively, install it directly using Go:
 go install github.com/michalskocz/velkor/src/velkor@latest
 ```
 
-### Linux Packages (v1.4.1)
+### Linux Packages (v1.4.2)
 
 **Fedora / RHEL / CentOS / Rocky Linux:**
 
@@ -98,30 +118,87 @@ Check out the [Velkor CI config](src/ci.yml) or the [C project example](examples
 | `artifacts` | Files copied from `/workspace` to `artifacts/<task_name>/` upon success. |
 | `variables` | Task-specific variables that merge with global variables. |
 
----
+
+<div align="center">
 
 ## 🚀 How Velkor Executes Pipelines
 
-1. **Parse & Validate:** Velkor reads `ci.yml`, validates thread counts, checks for duplicate stages/tasks, and verifies stage assignments.
-2. **Run Stages Sequentially:** It moves through the `stages` list in strict order (e.g., `test` → `build` → `package`).
-3. **Execute Tasks Concurrently:** For each stage, tasks run in parallel up to the `threads` limit.
-4. **Container Isolation:** Each task spins up a container, mounts the local workspace, and runs `sh -c "<script>"`.
-5. **Extract Artifacts:** If a task succeeds, defined artifacts are copied from the container to the host machine.
-6. **Error Handling:** If any task fails (non-zero exit code), or if configuration is invalid, the pipeline halts immediately.
+<table>
+<tr>
+<td width="33%" valign="top">
 
----
+### 🔍 1. Parse & Validate
 
-## 🧪 Smoke Testing Example
+Velkor loads `ci.yml` and checks:
 
-Smoke tests are a great way to verify packages inside fresh distro containers. Velkor handles this elegantly:
+- ✅ Valid configuration
+- ✅ Thread limits
+- ✅ Duplicate stages/tasks
+- ✅ Stage assignments
 
-```yaml
-install_fedora:
-  stage: smoke
-  image: fedora:44
-  script:
-    - cp artifacts/build_packages/velkor.rpm velkor.rpm
-    - dnf install -y ./velkor.rpm
-    - velkor --help
+</td>
+<td width="33%" valign="top">
+
+### 🔄 2. Sequential Stages
+
+Pipelines follow strict stage order:
 
 ```
+test → build → package
+```
+
+Each stage starts only after the previous one completes.
+
+</td>
+<td width="33%" valign="top">
+
+### ⚡ 3. Parallel Tasks
+
+Tasks inside a stage run concurrently:
+
+- Configurable worker threads
+- Faster execution
+- Controlled resource usage
+
+</td>
+</tr>
+
+<tr>
+<td width="33%" valign="top">
+
+### 📦 4. Container Isolation
+
+Every task runs inside its own container:
+
+- 🐳 Docker support
+- 📦 Podman support
+- 📂 Workspace mounting
+- 🖥️ `sh -c "<script>"` execution
+
+</td>
+<td width="33%" valign="top">
+
+### 📤 5. Artifact Extraction
+
+After successful execution:
+
+- Artifacts are collected
+- Files are copied from containers
+- Results are stored locally
+
+</td>
+<td width="33%" valign="top">
+
+### 🛑 6. Error Handling
+
+Pipeline stops immediately when:
+
+- ❌ Task exits with non-zero code
+- ❌ Configuration validation fails
+- ❌ Execution cannot continue
+
+</td>
+</tr>
+</table>
+
+</div>
