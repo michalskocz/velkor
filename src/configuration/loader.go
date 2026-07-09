@@ -5,9 +5,15 @@
 
  1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 
- 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer
+    in the documentation and/or other materials provided with the distribution.
 
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+ IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+ OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
@@ -18,6 +24,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/michalskocz/velkor/src/internal"
 	"gopkg.in/yaml.v3"
 )
 
@@ -36,17 +43,7 @@ type yamlTask struct {
 	Variables []map[string]string `yaml:"variables"`
 }
 
-func testForContainer() int {
-	if _, err := exec.LookPath("docker"); err == nil {
-		return DOCKER
-	}
-
-	if _, err := exec.LookPath("podman"); err == nil {
-		return PODMAN
-	}
-
-	return -1
-}
+var errNullPointer = fmt.Errorf("Null pointer error in look up")
 
 func ParseYAMLConfig(yamlData []byte) (*Config, error) {
 
@@ -58,7 +55,7 @@ func ParseYAMLConfig(yamlData []byte) (*Config, error) {
 	config := &Config{
 		GlobalVariables: []Variable{},
 		Stages:          StageQueue{stages: []Stage{}},
-		Threads:         DEFAULT_THREADS,
+		Threads:         internal.DEFAULT_THREADS,
 	}
 
 	if err := lookUpVars(&rawMap, config); err != nil {
@@ -165,7 +162,7 @@ func parseTasks(data *map[string]yaml.Node, config *Config, taskMap *map[string]
 	taskQueueMap := *taskMap
 
 	for key, node := range rawMap {
-		if key == stages_str || key == variables_str || key == threads_str {
+		if gloabKey(key) {
 			continue
 		}
 
@@ -182,16 +179,7 @@ func parseTasks(data *map[string]yaml.Node, config *Config, taskMap *map[string]
 			containerType = DOCKER
 		}
 
-		taskVars := make([]Variable, 0)
-
-		for _, m := range yt.Variables {
-			for k, v := range m {
-				taskVars = append(taskVars, Variable{
-					Name:  k,
-					Value: v,
-				})
-			}
-		}
+		taskVars := taskVarsArr(yt)
 
 		task := Task{
 			Name: key,
@@ -216,7 +204,19 @@ func parseTasks(data *map[string]yaml.Node, config *Config, taskMap *map[string]
 	return nil
 }
 
-var errNullPointer = fmt.Errorf("Null pointer error in look up")
+func taskVarsArr(yt yamlTask) []Variable {
+	taskVars := make([]Variable, 0)
+
+	for _, m := range yt.Variables {
+		for k, v := range m {
+			taskVars = append(taskVars, Variable{
+				Name:  k,
+				Value: v,
+			})
+		}
+	}
+	return taskVars
+}
 
 func notNullNodes(data *map[string]yaml.Node, config *Config) error {
 	if data == nil || config == nil {
@@ -224,4 +224,20 @@ func notNullNodes(data *map[string]yaml.Node, config *Config) error {
 	}
 
 	return nil
+}
+
+func testForContainer() int {
+	if _, err := exec.LookPath("docker"); err == nil {
+		return DOCKER
+	}
+
+	if _, err := exec.LookPath("podman"); err == nil {
+		return PODMAN
+	}
+
+	return -1
+}
+
+func gloabKey(key string) bool {
+	return key == stages_str || key == variables_str || key == threads_str
 }

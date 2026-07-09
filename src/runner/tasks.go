@@ -1,28 +1,13 @@
-/*
- Copyright (c) 2026 Michał Skoczylas
-
- Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
- 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
- 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-*/
-
 package runner
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
-	"github.com/michalskocz/velkor/src/internal"
-
 	"github.com/michalskocz/velkor/src/configuration"
+	"github.com/michalskocz/velkor/src/logger"
 )
 
 func fetchTask(stage configuration.Stage) (configuration.Task, error) {
@@ -44,7 +29,13 @@ func runTask(ctx context.Context, task configuration.Task) error {
 		return nil
 	}
 
-	log.Printf(internal.ColorYellow+"[Task: %s]"+internal.ColorReset+" Running in container: %s\n", task.Name, task.Image.Name)
+	taskLog := logger.Log.With().
+		Str("task", task.Name).
+		Logger()
+
+	taskLog.Info().
+		Str("container", task.Image.Name).
+		Msg("Running task")
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -60,26 +51,23 @@ func runTask(ctx context.Context, task configuration.Task) error {
 	env := buildEnv(task)
 	engine := resolveEngine(task)
 	runArgs, volume, err := buildRunArgs(task, pwd)
-
 	if err != nil {
 		return err
 	}
 
-	if debug == internal.DEBUG_ON {
-		log.Printf(
-			internal.ColorCyan+"[DEBUG]"+internal.ColorReset+" task=%s engine=%s args=%s"+internal.ColorReset+"\n",
-			task.Name,
-			engine,
-			strings.Join(runArgs, " "),
-		)
-	}
+	taskLog.Debug().
+		Str("engine", engine).
+		Str("cmd", strings.Join(runArgs, " ")).
+		Msg("Starting container")
 
-	defer func() {
-		stopTaskAndRM(task, engine, volume)
-	}()
+	defer stopTaskAndRM(task, engine, volume)
 
 	if err := runCommand(ctx, engine, runArgs, env, logFile); err != nil {
-		return fmt.Errorf("task '%s' failed %v", task.Name, err)
+		taskLog.Error().
+			Err(err).
+			Msg("Failed to start container")
+
+		return fmt.Errorf("task '%s' failed: %w", task.Name, err)
 	}
 
 	if err := runScript(ctx, task, engine, env, logFile); err != nil {
@@ -90,6 +78,8 @@ func runTask(ctx context.Context, task configuration.Task) error {
 		return err
 	}
 
-	log.Printf(internal.ColorGreen+"[Task: %s]"+internal.ColorReset+" Completed successfully."+internal.ColorReset+"\n", task.Name)
+	taskLog.Info().
+		Msg("Task completed")
+
 	return nil
 }

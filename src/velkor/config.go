@@ -17,12 +17,31 @@
 
 */
 
-package internal
+package main
 
-const (
-	DEBUG_OFF_STR = "INFO"
-	DEBUG_OFF     = 0
+import (
+	"fmt"
+	"log"
+	"os"
 
-	DEBUG_ON_STR = "DEBUG"
-	DEBUG_ON     = 1
+	"github.com/michalskocz/velkor/src/configuration"
+	"github.com/michalskocz/velkor/src/internal"
 )
+
+func getConfig() {
+	data, err := os.ReadFile(local.File.Name())
+	if err != nil {
+		log.Fatal(err)
+	}
+	if conf, err := configuration.ParseYAMLConfig(data); err != nil {
+		log.Fatal(err)
+	} else if conf != nil {
+		local.Cfg = conf
+	} else {
+		log.Fatal("Null pointer error")
+	}
+
+	if local.Debug == internal.DEBUG_ON {
+		fmt.Println(local.Cfg.String())
+	}
+}
